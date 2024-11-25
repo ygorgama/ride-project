@@ -50,16 +50,6 @@ export class RideController {
 			.orderBy("drivers.value", "DESC")
 			.getMany();
 
-			const driversEditet = drivers.map(driver => {
-				if (driver.vehicle != null || driver.vehicle != undefined) {
-					const vehicle = driver.vehicle.model + " " + driver.vehicle.description;
-					delete driver.vehicle;
-					driver.vehicle = vehicle; 
-				}
-
-				return driver
-			});
-
 			const expectedResponse = {
 				origin: {
 					latitude: routeValues[0].legs[0].startLocation.latLng.latitude,
@@ -71,7 +61,7 @@ export class RideController {
 				},
 				distance: distanceOnKm,
 				duration:  routeValues[0].duration,
-				options: [...driversEditet],
+				options: [...drivers],
 				routeResponse: routeValues
 			} 
 
@@ -153,8 +143,69 @@ export class RideController {
 				return res.status(status).json({
 					"error_code": error_code,
 					"error_description": error.message
-				});
-		} 
+				});	
+			} 
+		}
+	}
+
+	async getRide(req: Request, res: Response){
+		const {custumer_id} = req.params;
+		const {driver_id} = req.query;
+
+		const result = validationResult(req);
+
+		if (!result.isEmpty()) {
+			return res.status(400).json({
+				"error_code": "INVALID_DATA",
+				"error_description": result.array()[0].msg
+			});
+		}
+
+		try {
+			let driver: Drivers | null = null;
+
+			const rideRepository = AppDataSource.getRepository(RideConfirmation);
+
+			const rideQueryBuilder = rideRepository.createQueryBuilder("ride")
+			.where("ride.costumerId = :custumer_id", {custumer_id: custumer_id}).innerJoinAndSelect("ride.driver", "driver");
+
+			
+			if (driver_id) {
+				driver =  await AppDataSource.getRepository(Drivers).findOneBy({
+					id: parseInt(driver_id.toString())
+				})
+	
+				if (!driver) {
+					throw new Error('Driver does not exist in the database', {cause: "INVALID_DRIVER"})
+				}
+
+				rideQueryBuilder.where("ride.driver = :driver", {driver: driver});
+			}
+
+			const ride = await rideQueryBuilder.orderBy("ride.date", "DESC").getMany();
+
+			if (ride.length === 0) {
+				throw new Error("Ride doesn't exist on database", {cause: "NO_RIDES_FOUND"})
+
+			}
+
+			return res.json(ride);
+		} catch (error) {
+			if (error instanceof Error ) {
+				const error_code = error.cause;
+				let status = 500;
+
+				if (error.cause === "INVALID_DRIVER") {
+					status = 400;
+				}else if(error.cause === "NO_RIDES_FOUND"){
+					status = 404;
+				}
+	
+				return res.status(status).json({
+					"error_code": error_code,
+					"error_description": error.message
+				});	
+			} 
 		}
 	}
 }

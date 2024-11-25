@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { RideController } from "../controllers/RideController";
-import {body} from "express-validator"
+import {query, body, param} from "express-validator"
 import { RouteCalculationService } from "../services/RouteCalculationService";
 
 const router = Router();
@@ -36,5 +36,10 @@ router.post("/confirm",
 	]
  ,rideController.confirmRide.bind(rideController)
 );
+
+router.get("/:custumer_id/", [
+	param('custumer_id').notEmpty().isString(),
+	query('driver_id', "Enter a valid driver id").isInt().optional()
+], rideController.getRide.bind(rideController))
 
 export default router;

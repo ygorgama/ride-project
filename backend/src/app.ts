@@ -12,6 +12,5 @@ app.use(cors());
 app.use("/ride", routeRide);
 
 
-
 export default app;
 
