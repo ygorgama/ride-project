@@ -10,8 +10,19 @@ services:
             - POSTGRES_DB=application
         volumes:
             - ./data:/var/lib/postgresql/data
-    adminer:
-        image: adminer
-        restart: on-failure
+        networks:
+            - app
+    api:
+        build: 
+            context: ./backend/
         ports:
-        - 9000:8080
+            - "8080:8080"
+        depends_on:
+            - db
+        networks:
+            - app
+        container_name: api-ride
+
+networks:
+    app:
+        driver: bridge
