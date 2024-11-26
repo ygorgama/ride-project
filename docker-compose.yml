@@ -14,7 +14,7 @@ services:
             - app
     api:
         build: 
-            context: ./backend/
+            context: .
         ports:
             - "8080:8080"
         depends_on:
@@ -22,7 +22,7 @@ services:
         networks:
             - app
         container_name: api-ride
-
+        command: sh -c "npm run migration & npm run seeder & npm run start"
 networks:
     app:
         driver: bridge

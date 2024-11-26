@@ -9,6 +9,8 @@ export class RouteCalculationService implements RouteCalculationServiceInterface
 			'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.legs.startLocation,routes.legs.endLocation'
 		}
 
+		console.log(headers)
+
 		const requestBody = {
 			origin: {
 				address: origin

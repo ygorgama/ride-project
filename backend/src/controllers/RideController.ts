@@ -74,7 +74,9 @@ export class RideController {
 								"error_description": error.message
 						});
 					}
-		
+					
+					console.log(error.message)
+
 					return res.status(500).json({
 						"error_code": "UNEXPECTED_ERROR",
 						"error_description": error.message

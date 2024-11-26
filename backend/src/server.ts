@@ -1,8 +1,7 @@
 import app from "./app";
 import { AppDataSource } from "./data-source";
-import dotenv from 'dotenv';
 
-dotenv.config({path: "../.env"})
+import 'dotenv/config'
 
 const PORT:number = 8080;
 

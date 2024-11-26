@@ -3,10 +3,12 @@ FROM node:22.11.0-alpine
 RUN mkdir -p /opt/app
 WORKDIR /opt/app
 
-COPY package.json  .
+COPY backend/package.json  .
+COPY .env .
+
 
 RUN npm install
-COPY . .
+COPY backend/ .
 
 RUN npm run build
 

@@ -39,7 +39,7 @@ router.post("/confirm",
 
 router.get("/:custumer_id/", [
 	param('custumer_id').notEmpty().isString(),
-	query('driver_id', "Enter a valid driver id").isInt().optional()
+	query('driver_id', "Enter a valid driver id").isInt().optional()	
 ], rideController.getRide.bind(rideController))
 
 export default router;
