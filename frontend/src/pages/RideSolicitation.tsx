@@ -1,16 +1,28 @@
-import { FormEvent, useRef } from "react"
+import { FormEvent, useRef, useState } from "react"
 import Input from "../components/Input";
 import axios from "axios";
+import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+
+interface GoogleMapsLatLongInterface {
+    latitude: number;
+    longitude: number;
+}
 
 export default function RideSolicitation(){
-
+    const [originLatLong, setOriginLatLong] = useState<google.maps.LatLngLiteral>();
+    const [destinationLatLong,setDestinationLatLong] = useState<google.maps.LatLngLiteral>()
 
     const formRef = useRef<HTMLFormElement>(null)
     const inputCustomerId= useRef<HTMLInputElement>(null);
 
     const inputOrigin = useRef<HTMLInputElement>(null);
 
-    const inputDestination = useRef<HTMLInputElement>(null);;
+    const inputDestination = useRef<HTMLInputElement>(null);
+
+    const { isLoaded } = useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: process.env.GOOGLE_API_KEY as string,
+    })
 
 
     const submitHandler = async (event: FormEvent) => {
