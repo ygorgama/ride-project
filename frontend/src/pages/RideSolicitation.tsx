@@ -1,9 +1,10 @@
-import { FormEvent, useRef } from "react"
+import { FormEvent, useRef, useState } from "react"
 import Input from "../components/Input";
 import axios from "axios";
 import { RequestDriversInterface } from "../interfaces/RequestDriversInterface";
 import { useAppContext } from "../provider";
 import { useNavigate } from "react-router";
+import { AxiosError } from '../../node_modules/axios';
 
 export default function RideSolicitation(){
     const { setDrivers, setCustumerId, setLocation } = useAppContext();
@@ -16,6 +17,11 @@ export default function RideSolicitation(){
 
     const inputDestination = useRef<HTMLInputElement>(null);
 
+    const [errorCustumerId, setErrorCustumerId] = useState(false);
+    const [errorOrigin, setErrorOrigin] = useState(false);
+    const [errorDestination, setErrorDestination] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+
     const submitHandler = async (event: FormEvent) => {
         event.preventDefault();
 
@@ -23,6 +29,25 @@ export default function RideSolicitation(){
             customer_id: inputCustomerId.current?.value,
             destination: inputDestination.current?.value,
             origin: inputOrigin.current?.value,
+        }
+
+        if (!requestBody.customer_id || requestBody.customer_id == "") {
+            setErrorCustumerId(true);
+            setErrorMessage("ID do cunsumido inválido")
+        }else{
+            setErrorCustumerId(false);  
+        }
+
+        if (!requestBody.origin || requestBody.origin == "" || requestBody.origin == requestBody.destination) {
+            setErrorOrigin(true);
+        }else{
+            setErrorOrigin(false)
+        }
+
+        if (!requestBody.destination || requestBody.destination == "" || requestBody.destination == requestBody.destination) {
+            setErrorDestination(true);
+        }else{
+            setErrorDestination(false)
         }
 
 
@@ -44,7 +69,9 @@ export default function RideSolicitation(){
             }
             return  navigate("/traveling-options");
         } catch (error) {
-            console.log(error)
+            if (error instanceof AxiosError) {
+                console.log(AxiosError)
+            }
         }
 
         formRef.current?.reset();
@@ -53,9 +80,9 @@ export default function RideSolicitation(){
     return (
         <div className="flex justify-center items-center w-full h-screen">
             <form onSubmit={submitHandler} ref={formRef} className="w-96 bg-gray-400 rounded p-4">
-                <Input inputRef={inputCustomerId}  label="Custumer ID" name="custumer" inputType="text" placeholder="Custumer ID" />
-                <Input inputRef={inputOrigin}   label="Origin" name="origin" inputType="text" placeholder="Feira de Santana BA" />
-                <Input inputRef={inputDestination}   label="Destination" name="destination" inputType="text" placeholder="Salvador BA"/>
+                <Input errorMessage={errorMessage} error={errorCustumerId} inputRef={inputCustomerId}  label="Custumer ID" name="custumer" inputType="text" placeholder="Custumer ID" />
+                <Input errorMessage={errorMessage} error={errorOrigin}  inputRef={inputOrigin} label="Origin" name="origin" inputType="text" placeholder="Feira de Santana BA" />
+                <Input inputRef={inputDestination} errorMessage={errorMessage} error={errorDestination}  label="Destination" name="destination" inputType="text" placeholder="Salvador BA"/>
                 <div>
                     <button className="submit-button w-full">Submit</button>
                 </div>
