@@ -5,6 +5,18 @@ import { AppDataSource } from "../data-source";
 import { Drivers } from "../entities/DriversEntity";
 import { RideConfirmation } from "../entities/RideConfirmationEntity";
 
+type responseDriverType = {
+	id?: number,
+	name?: string,
+	description?: string,
+	vehicle?: string,
+	review?: {
+		raiting?: number
+		comment?: string,
+	};
+	value?: number,
+} 
+
 export class RideController {
 
 	constructor(
@@ -50,6 +62,19 @@ export class RideController {
 			.orderBy("drivers.value", "DESC")
 			.getMany();
 
+			const driversResponse: responseDriverType[] = drivers.map((driver => {
+				const vehicle = driver.vehicle?.model + " " + driver.vehicle?.description;
+				const object: responseDriverType = {
+					description: driver.description,
+					name: driver.name,
+					id: driver.id,
+					review: driver.review,
+					value: driver.value,
+					vehicle: vehicle,
+				} 
+				return object;
+			}))
+
 			const expectedResponse = {
 				origin: {
 					latitude: routeValues[0].legs[0].startLocation.latLng.latitude,
@@ -61,7 +86,7 @@ export class RideController {
 				},
 				distance: distanceOnKm,
 				duration:  routeValues[0].duration,
-				options: [...drivers],
+				options: [...driversResponse],
 				routeResponse: routeValues
 			} 
 
@@ -124,7 +149,7 @@ export class RideController {
 			newRide.origin = origin;
 			newRide.duration = duration;
 			newRide.driver = driver;
-			newRide.costumerId = customer_id;
+			newRide.custumer_id = customer_id;
 			newRide.distance= distance;
 			newRide.value = value;
 
@@ -151,7 +176,7 @@ export class RideController {
 	}
 
 	async getRide(req: Request, res: Response){
-		const {custumer_id} = req.params;
+		const {customer_id} = req.params;
 		const {driver_id} = req.query;
 
 		const result = validationResult(req);
@@ -169,19 +194,22 @@ export class RideController {
 			const rideRepository = AppDataSource.getRepository(RideConfirmation);
 
 			const rideQueryBuilder = rideRepository.createQueryBuilder("ride")
-			.where("ride.costumerId = :custumer_id", {custumer_id: custumer_id}).innerJoinAndSelect("ride.driver", "driver");
+			.where("ride.costumerId = :custumer_id", {custumer_id: customer_id}).innerJoinAndSelect("ride.driver", "driver");
 
 			
 			if (driver_id) {
 				driver =  await AppDataSource.getRepository(Drivers).findOneBy({
 					id: parseInt(driver_id.toString())
 				})
+
+				console.log(driver)
 	
 				if (!driver) {
 					throw new Error('Driver does not exist in the database', {cause: "INVALID_DRIVER"})
 				}
+				console.log(driver)
 
-				rideQueryBuilder.where("ride.driver = :driver", {driver: driver});
+				rideQueryBuilder.where("ride.driver = :driver", {driver: driver.id});
 			}
 
 			const ride = await rideQueryBuilder.orderBy("ride.date", "DESC").getMany();

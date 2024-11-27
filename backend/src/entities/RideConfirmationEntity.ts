@@ -6,8 +6,8 @@ export class RideConfirmation {
 	@PrimaryGeneratedColumn()
 	id:number | undefined;
 
-	@Column({ type: 'varchar' })
-	costumerId: number | undefined;
+@Column({ type: 'varchar', name: "costumerId"})
+	custumer_id: number | undefined;
 
 	@Column({ type: 'timestamp' })
 	@CreateDateColumn()
@@ -29,5 +29,5 @@ export class RideConfirmation {
 	duration?: string;
 
 	@Column({ type: 'numeric' })
-	value?: string;
+	value?: number;
 }

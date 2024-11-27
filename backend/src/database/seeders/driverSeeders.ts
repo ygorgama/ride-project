@@ -3,14 +3,12 @@ import { DataSource } from "typeorm";
 
 
 export async function seedDriverrs(dataSource: DataSource, iterationCyclePosition: number){
-	const query = await dataSource.query(`
+	await dataSource.query(`
 			INSERT INTO vehicles (
 			model,
 			description
 		) VALUES ('${faker.vehicle.vehicle()}', '${faker.lorem.sentence()}');
 	`);
-
-	console.log(query)
 
 	await dataSource.query(`INSERT INTO reviews (raiting, comment) VALUES ('${faker.number.int({min: 1, max: 5})}', '${faker.lorem.sentence()}')`,  
 	);

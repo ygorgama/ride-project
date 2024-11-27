@@ -15,7 +15,7 @@ router.post("/estimate",
  ,rideController.estimateRoute.bind(rideController)
 );
 
-router.post("/confirm", 
+router.patch("/confirm", 
 	[
 		body("customer_id").notEmpty().withMessage("An error ocurred on costumer_id field").isString().withMessage("An error ocurred on costumer_id field"),
 		body("origin").notEmpty().withMessage("An error ocurred on origin field").isString().withMessage("An error ocurred on origin field"),
@@ -37,8 +37,8 @@ router.post("/confirm",
  ,rideController.confirmRide.bind(rideController)
 );
 
-router.get("/:custumer_id/", [
-	param('custumer_id').notEmpty().isString(),
+router.get("/:customer_id/", [
+	param('customer_id').notEmpty().isString(),
 	query('driver_id', "Enter a valid driver id").isInt().optional()	
 ], rideController.getRide.bind(rideController))
 

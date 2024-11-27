@@ -1,16 +1,13 @@
-import { FormEvent, useRef, useState } from "react"
+import { FormEvent, useRef } from "react"
 import Input from "../components/Input";
 import axios from "axios";
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
-
-interface GoogleMapsLatLongInterface {
-    latitude: number;
-    longitude: number;
-}
+import { RequestDriversInterface } from "../interfaces/RequestDriversInterface";
+import { useAppContext } from "../provider";
+import { useNavigate } from "react-router";
 
 export default function RideSolicitation(){
-    const [originLatLong, setOriginLatLong] = useState<google.maps.LatLngLiteral>();
-    const [destinationLatLong,setDestinationLatLong] = useState<google.maps.LatLngLiteral>()
+    const { setDrivers, setCustumerId, setLocation } = useAppContext();
+    const navigate = useNavigate();
 
     const formRef = useRef<HTMLFormElement>(null)
     const inputCustomerId= useRef<HTMLInputElement>(null);
@@ -18,12 +15,6 @@ export default function RideSolicitation(){
     const inputOrigin = useRef<HTMLInputElement>(null);
 
     const inputDestination = useRef<HTMLInputElement>(null);
-
-    const { isLoaded } = useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: process.env.GOOGLE_API_KEY as string,
-    })
-
 
     const submitHandler = async (event: FormEvent) => {
         event.preventDefault();
@@ -34,16 +25,24 @@ export default function RideSolicitation(){
             origin: inputOrigin.current?.value,
         }
 
-        console.log(requestBody)
 
         try {
-            const responseData = await axios.post("http://127.0.0.1:8080/ride/estimate", requestBody);
-
-            if (responseData.status !== 200) {
-                console.log()
+            const response = await axios.post("http://127.0.0.1:8080/ride/estimate", requestBody);
+            const responseData: RequestDriversInterface = response.data as RequestDriversInterface
+            if (requestBody.customer_id) {
+                setCustumerId(requestBody.customer_id);
             }
-            console.log(responseData.data)
-    
+            setDrivers(responseData);
+            if (
+                requestBody.destination &&
+                requestBody.origin
+            ) {
+                setLocation({
+                    destination: requestBody.destination as string,
+                    origin: requestBody.origin as string,
+                });
+            }
+            return  navigate("/traveling-options");
         } catch (error) {
             console.log(error)
         }
@@ -53,7 +52,7 @@ export default function RideSolicitation(){
     
     return (
         <div className="flex justify-center items-center w-full h-screen">
-            <form onSubmit={submitHandler} ref={formRef} className="w-96 ">
+            <form onSubmit={submitHandler} ref={formRef} className="w-96 bg-gray-400 rounded p-4">
                 <Input inputRef={inputCustomerId}  label="Custumer ID" name="custumer" inputType="text" placeholder="Custumer ID" />
                 <Input inputRef={inputOrigin}   label="Origin" name="origin" inputType="text" placeholder="Feira de Santana BA" />
                 <Input inputRef={inputDestination}   label="Destination" name="destination" inputType="text" placeholder="Salvador BA"/>
@@ -61,6 +60,7 @@ export default function RideSolicitation(){
                     <button className="submit-button w-full">Submit</button>
                 </div>
             </form>
+
         </div>
     )
 }
