@@ -13,7 +13,7 @@ function App() {
         <Route element={<MainLayout/>}>
           <Route path="/" element={< RideSolicitation/>}/>
           <Route path="/traveling-options" element={< TravellingOption/>}/>
-          <Route path="/travel-history/:id" element={< TravellingHistory/>}/>
+          <Route path="/travel-history/:id?" element={< TravellingHistory/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

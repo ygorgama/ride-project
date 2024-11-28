@@ -202,12 +202,9 @@ export class RideController {
 					id: parseInt(driver_id.toString())
 				})
 
-				console.log(driver)
-	
 				if (!driver) {
 					throw new Error('Driver does not exist in the database', {cause: "INVALID_DRIVER"})
 				}
-				console.log(driver)
 
 				rideQueryBuilder.where("ride.driver = :driver", {driver: driver.id});
 			}
@@ -216,7 +213,6 @@ export class RideController {
 
 			if (ride.length === 0) {
 				throw new Error("Ride doesn't exist on database", {cause: "NO_RIDES_FOUND"})
-
 			}
 
 			return res.json(ride);

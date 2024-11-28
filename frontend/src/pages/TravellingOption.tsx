@@ -10,7 +10,7 @@ export default function TravellingOption(){
     const inputDriverIdRef = useRef<HTMLInputElement>(null);
     const inputDriverValueRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
-    console.log(drivers)
+
     const handleChosenDriver = async (event: FormEvent) => {
         event.preventDefault()
         const requestBody = {

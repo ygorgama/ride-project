@@ -5,6 +5,7 @@ import { RequestRidersInterface } from "../interfaces/RequestRidersInterface";
 import Input from "../components/Input";
 import { DriverEntityInterface } from "../interfaces/RequestDriversInterface";
 import { AxiosError } from '../../node_modules/axios';
+import ErrorBox from '../components/ErrorBox';
 
 export default function TravellingHistory(){
     const {id} = useParams();
@@ -15,8 +16,9 @@ export default function TravellingHistory(){
     const customerIdRef = useRef<HTMLInputElement>(null);
     const driverIdRef = useRef<HTMLSelectElement>(null);
     const [errorId, setErrorId] = useState(false);
-    const [errorDriver, setErrorDriver] = useState(false);
+    const [apiError, setApiError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [apiErrorMessage, setApiErrorMessage] = useState("");
     const navigate = useNavigate();
 
     const travelHistoryTableHeaders = ["data e hora da viagem", "nome do motorista", 
@@ -29,6 +31,7 @@ export default function TravellingHistory(){
         const driver = (driverIdRef.current && parseInt(driverIdRef.current.value) !== 0 ) ? `?driver_id=${driverIdRef.current.value}` : ""
 
         if (!customerIdRef.current || customerIdRef.current.value == "") {
+            console.log(customerIdRef.current)
             setErrorId(true);
             setErrorMessage("ID de consumidor inválido");
             return;
@@ -38,30 +41,38 @@ export default function TravellingHistory(){
     }
 
     useEffect( () => {
-        const driverIdParamFilter = driverParam ? `?driver_id=${driverParam}` : '';
-        axios.get(`http://127.0.0.1:8080/ride/${id}${driverIdParamFilter}`)
-        .then(response => {
-            if (response.status == 404) {
-                return;
-            }
-            return response.data
-        })
-        .then(responseData => setTravelHistory(responseData as Array<RequestRidersInterface>))
-        .catch((err: Error | AxiosError) => {
-            if (err instanceof AxiosError) {
-                if (err.status == 404) {
-                    setErrorId(true);
-                }else{
-                    setErrorDriver(true);
+        if (id) {
+            setApiError(false)
+            const driverIdParamFilter = driverParam ? `?driver_id=${driverParam}` : '';
+            axios.get(`http://127.0.0.1:8080/ride/${id}${driverIdParamFilter}`)
+            .then(response => {
+                if (response.status == 404) {
+                    return;
                 }
-            }
-        });
-
+                console.log(response)
+                return response.data
+            })
+            .then(responseData => setTravelHistory(responseData as Array<RequestRidersInterface>))
+            .catch((err) => {
+                if (err instanceof Error) {
+                    const error = err as AxiosError
+                    if (error.status == 404) {
+                        setApiError(true);
+                        setApiErrorMessage("Nenhum registro encontrado")
+                        return;
+                    }else if(error.status == 400){
+                        setApiError(true);
+                        setApiErrorMessage("Motorista invalido")
+                    }
+                }
+            });
+        }
         axios.get(`http://127.0.0.1:8080/driver/index`).then(response => response.data)
         .then(responseData => setDrivers(responseData as Array<DriverEntityInterface>))
         .catch(error => {
-            if (error instanceof AxiosError) {
-                setErrorDriver(true);
+            if (error instanceof Error) {
+                setApiError(true);
+                setApiErrorMessage("Nenhum motorista encontrado")
             }
         });
     }, [driverParam, id, setTravelHistory]);
@@ -69,6 +80,10 @@ export default function TravellingHistory(){
 
     return (
         <div className="mx-4">
+            <div className='mt-4'>
+                {apiError &&  <ErrorBox errorMessage={apiErrorMessage}></ErrorBox>}
+
+            </div>
             <div className="bg-gray-500 mt-4 p-6 rounded">
                 <h2 className="mb-4">Filtros</h2>
                 <form onSubmit={formSubmit} className='flex '>
@@ -79,14 +94,14 @@ export default function TravellingHistory(){
                             <option value={0}>-------------------------------</option>
                             {drivers.length > 0 && (
                                 drivers.map(driver => (
-                                    <option value={driver.id}>{driver.name}</option>
+                                    <option key={driver.id} value={driver.id}>{driver.name}</option>
                                 ))
                             )}
                         </select>
-                        {errorDriver ? (<p className="text-red-600 ">{errorMessage}</p>) : ''}
                         </div>
-                    <div className="ml-3 self-center">
-                        <button type="submit" className="submit-button  font-semibold">Filtrar</button>
+                    <div className="ml-4 ">
+                        <br />
+                        <button type="submit" className="p-3 bg-blue-300 rounded hover:bg-blue-500 font-semibold">Filtrar</button>
                     </div>
                 </form>
             </div>
@@ -111,8 +126,6 @@ export default function TravellingHistory(){
                                             <td className="border-slate-500 border  bg-slate-400">{history.distance} KM</td>
                                             <td className="border-slate-500 border  bg-slate-400">{history.duration} KM</td>
                                             <td className="border-slate-500 border  bg-slate-400">{history.value} KM</td>
-
-
                                         </tr>
                                     ))
                                 }
